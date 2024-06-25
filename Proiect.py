@@ -1,6 +1,7 @@
 import numpy as np
-import customtkinter as ctk 
+import customtkinter as ctk
 from tkinter import messagebox
+from tkinter import filedialog
 
 
 class LUDecompositionApp:
@@ -8,14 +9,12 @@ class LUDecompositionApp:
         self.root = root
         self.root.title("LU Decomposition Solver")
 
-        self.matrix_label = ctk.CTkLabel(
-            root, text="Enter matrix A (comma-separated rows):"
-        )
+        self.matrix_label = ctk.CTkLabel(root, text="Enter matrix A ")
         self.matrix_label.pack(pady=10)
         self.matrix_entry = ctk.CTkEntry(root, width=400)
         self.matrix_entry.pack(pady=10)
 
-        self.vector_label = ctk.CTkLabel(root, text="Enter vector b (comma-separated):")
+        self.vector_label = ctk.CTkLabel(root, text="Enter vector b ")
         self.vector_label.pack(pady=10)
         self.vector_entry = ctk.CTkEntry(root, width=400)
         self.vector_entry.pack(pady=10)
@@ -35,10 +34,41 @@ class LUDecompositionApp:
         self.solve_button = ctk.CTkButton(root, text="Solve", command=self.solve)
         self.solve_button.pack(pady=10)
 
+        self.open_button = ctk.CTkButton(root, text="Open File", command=self.open_file)
+        self.open_button.pack(pady=10)
+
         self.result_label = ctk.CTkLabel(root, text="Solution x:")
         self.result_label.pack(pady=10)
-        self.result_text = ctk.CTkTextbox(root, height=200, width=400)
+
+        self.result_text = ctk.CTkTextbox(
+            root, height=200, width=400, border_width=4, corner_radius=14
+        )
         self.result_text.pack(pady=10)
+
+    def open_file(self):
+        file_path = filedialog.askopenfilename(
+            title="Select a Text File", filetypes=[("Text files", "*.txt")]
+        )
+        if file_path:
+            with open(file_path, "r") as file:
+                lines = file.readlines()
+                matrix_lines = []
+                vector_line = None
+                for line in lines:
+                    line = line.strip()
+                    if line:
+                        if line.startswith("Matrix:"):
+                            matrix_lines.append(line[len("Matrix:") :].strip())
+                        elif line.startswith("Vector:"):
+                            vector_line = line[len("Vector:") :].strip()
+
+                matrix_str = ";".join(matrix_lines)
+                self.matrix_entry.delete(0, "end")
+                self.matrix_entry.insert(0, matrix_str)
+
+                if vector_line:
+                    self.vector_entry.delete(0, "end")
+                    self.vector_entry.insert(0, vector_line)
 
     def parse_matrix(self, matrix_str):
         try:
@@ -84,11 +114,11 @@ class LUDecompositionApp:
             )
             return
 
-        self.result_text.delete(1.0, ctk.END)
-        self.result_text.insert(ctk.END, "Intermediate Steps:\n")
-        self.result_text.insert(ctk.END, steps)
-        self.result_text.insert(ctk.END, "\nSolution x:\n")
-        self.result_text.insert(ctk.END, str(x))
+        self.result_text.delete("1.0", "end")
+        self.result_text.insert("end", "Intermediate Steps:\n")
+        self.result_text.insert("end", steps)
+        self.result_text.insert("end", "\nSolution x:\n")
+        self.result_text.insert("end", str(x))
 
     def doolittle_lu(self, A):
         n = A.shape[0]
@@ -142,7 +172,8 @@ class LUDecompositionApp:
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("System")
-    ctk.set_default_color_theme("blue")
+    ctk.set_default_color_theme("green")
+    ctk.set_appearance_mode("dark")
 
     root = ctk.CTk()
     app = LUDecompositionApp(root)
